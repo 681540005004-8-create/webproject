@@ -11,14 +11,37 @@ from flask import Flask, render_template, request, jsonify, send_file, Response,
 from werkzeug.security import generate_password_hash, check_password_hash
 import pypdf
 import requests
-from rapidocr_onnxruntime import RapidOCR
+ocr_engine = None
+try:
+    from rapidocr_onnxruntime import RapidOCR
+    ocr_engine = RapidOCR()
+except Exception as _ocr_init_err:
+    print(f"[Notice] RapidOCR offline engine not pre-loaded: {_ocr_init_err}")
+    ocr_engine = None
 
-ocr_engine = RapidOCR()
-
-app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, 'templates'),
+    static_folder=os.path.join(BASE_DIR, 'static'),
+    static_url_path='/static'
+)
 app.secret_key = os.environ.get('SECRET_KEY', 'taskflow-ai-cpe-secret-key-2026')
 
-DATA_FILE = os.path.join(os.path.dirname(__file__), 'data', 'db.json')
+# Support Vercel / serverless environment (where root fs is read-only)
+IS_VERCEL = bool(os.environ.get('VERCEL') or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'))
+DEFAULT_DATA_FILE = os.path.join(BASE_DIR, 'data', 'db.json')
+
+if IS_VERCEL:
+    DATA_FILE = '/tmp/db.json'
+    if not os.path.exists(DATA_FILE) and os.path.exists(DEFAULT_DATA_FILE):
+        try:
+            import shutil
+            shutil.copyfile(DEFAULT_DATA_FILE, DATA_FILE)
+        except Exception as _e:
+            print(f"[Notice] Could not initialize /tmp/db.json: {_e}")
+else:
+    DATA_FILE = DEFAULT_DATA_FILE
 
 def get_default_cpe_classes():
     return [
@@ -134,9 +157,18 @@ def get_default_cpe_classes():
 
 def load_db():
     if not os.path.exists(DATA_FILE):
+        if os.path.exists(DEFAULT_DATA_FILE):
+            try:
+                with open(DEFAULT_DATA_FILE, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except Exception:
+                pass
         return {"users": {}}
-    with open(DATA_FILE, 'r', encoding='utf-8') as f:
-        data = json.load(f)
+    try:
+        with open(DATA_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except Exception:
+        data = {"users": {}}
     
     if "users" not in data:
         u = data.get('user', {})
@@ -167,9 +199,12 @@ def load_db():
     return data
 
 def save_db(data):
-    os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
-    with open(DATA_FILE, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    try:
+        os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
+        with open(DATA_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        print(f"[Warning] Could not save db: {e}")
 
 def get_current_user(db):
     uid = session.get('user_id')
@@ -809,6 +844,15 @@ def extract_classes_from_image_bytes(img_bytes):
     Extracts university course schedule directly from image bytes using RapidOCR ONNX.
     Supports both grid timetables (column/row headers) and list/table views.
     """
+    global ocr_engine
+    if ocr_engine is None:
+        try:
+            from rapidocr_onnxruntime import RapidOCR
+            ocr_engine = RapidOCR()
+        except Exception as e:
+            print("RapidOCR unavailable in this environment:", e)
+            return []
+
     try:
         img = Image.open(io.BytesIO(img_bytes)).convert('RGB')
         img_np = np.array(img)
