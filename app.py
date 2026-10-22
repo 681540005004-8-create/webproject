@@ -1182,6 +1182,8 @@ def batch_save_classes():
 # ================= APP WORKSPACE DATA ROUTES =================
 
 @app.route('/')
+@app.route('/index')
+@app.route('/api/index')
 def index():
     return render_template('index.html')
 
