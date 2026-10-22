@@ -1,33 +1,52 @@
-/* Custom Styles for TaskFlow AI */
-@import url('https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=JetBrains+Mono:wght@400;600&display=swap');
+/* ==========================================================================
+   TaskFlow AI - Modern UI Design System & Styles
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  --font-sans: 'Prompt', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: 'Prompt', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+  --bg-main: #090d16;
+  --bg-card: rgba(15, 23, 42, 0.65);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-highlight: rgba(99, 102, 241, 0.35);
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: #0f172a;
+  background-color: var(--bg-main);
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.14) 0%, rgba(9, 13, 22, 0) 55%),
+    radial-gradient(circle at 100% 20%, rgba(168, 85, 247, 0.08) 0%, rgba(9, 13, 22, 0) 40%),
+    radial-gradient(circle at 0% 50%, rgba(6, 182, 212, 0.06) 0%, rgba(9, 13, 22, 0) 45%);
+  background-attachment: fixed;
   color: #f8fafc;
+  min-height: 100vh;
 }
 
-/* Glassmorphism */
+/* Glassmorphism & Panels */
 .glass-panel {
-  background: rgba(30, 41, 59, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
 }
 
 .glass-card {
-  background: rgba(30, 41, 59, 0.5);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(18, 26, 47, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card:hover {
-  border-color: rgba(99, 102, 241, 0.4);
+  border-color: var(--border-highlight);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -5px rgba(99, 102, 241, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
 }
 
 /* Custom Scrollbars */
@@ -36,33 +55,19 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(9, 13, 22, 0.8);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(100, 116, 139, 0.5);
+  background: rgba(100, 116, 139, 0.45);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.8);
+  background: rgba(148, 163, 184, 0.7);
 }
 
-/* Pulse animation for energy */
-@keyframes energy-glow {
-  0%, 100% {
-    box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 25px rgba(129, 140, 248, 0.8);
-  }
-}
-
-.energy-glow-active {
-  animation: energy-glow 3s infinite ease-in-out;
-}
-
-/* Gradient text */
+/* Gradient texts */
 .gradient-text-brand {
-  background: linear-gradient(135deg, #60a5fa 0%, #a855f7 50%, #ec4899 100%);
+  background: linear-gradient(135deg, #818cf8 0%, #c084fc 50%, #f472b6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -73,11 +78,56 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-/* Timetable grid cells */
-.timetable-cell {
-  transition: all 0.2s ease;
+.gradient-text-amber {
+  background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
-.timetable-cell:hover {
-  transform: translateY(-2px);
-  z-index: 10;
+
+/* Animations */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.02); }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 4s infinite ease-in-out;
+}
+
+/* Interactive Timetable Row Transitions */
+.timeline-card {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.timeline-card:hover {
+  transform: translateY(-2px) scale(1.005);
+}
+
+/* Day tab pill active glow */
+.day-tab.active-day {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4) !important;
+}
+
+/* Navigation active tab pill */
+.nav-tab.active {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35) !important;
+}
+
+/* Floating badge indicator */
+.badge-glow-emerald {
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
+}
+
+.badge-glow-indigo {
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.35);
+}
+
+.badge-glow-purple {
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.35);
 }
